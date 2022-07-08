@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:sns="http://www.mulesoft.org/schema/mule/sns"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/sns http://www.mulesoft.org/schema/mule/sns/current/mule-sns.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="445b3b22-7b9d-4ed7-837a-842d1057f4e6" >
+		<http:listener-connection host="0.0.0.0" port="${http.port}" />
+	</http:listener-config>
+	<sns:config name="Amazon_SNS_configuration" doc:name="Amazon SNS configuration" doc:id="42042895-607a-4e92-ab5b-e8aaf279efe1" >
+		<sns:basic-connection testTopic="arn:aws:sns:us-east-1:567617630570:ville-de-montreal-communciations" accessKey="${aws.access.key}" secretKey="${aws.secret.key}"/>
+	</sns:config>
+	<configuration-properties doc:name="Configuration properties" doc:id="920a5bed-f9c2-4c9d-8af7-b55c4469bdaa" file="mule-artifact.properties" />
+	<flow name="aws-sns-system-apiFlow" doc:id="bac24a91-e376-4212-a97e-b7f08aa0c08c" >
+		<http:listener doc:name="Listener" doc:id="345e006e-4cc0-46ac-9e32-d6e23559e397" config-ref="HTTP_Listener_config" path="/sendSMSAlerts"/>
+		<sns:publish doc:name="Publish" doc:id="c24161c0-da88-41b9-b4b4-0b11c03e9dca" config-ref="Amazon_SNS_configuration" phoneNumber="+18482161687">
+			<sns:message ><![CDATA[#["Testing from MuleSoft - directly to phone!!!"]]]></sns:message>
+		</sns:publish>
+		<ee:transform doc:name="Transform Message" doc:id="45688f73-c1e0-406f-8c44-2b7c7c54d615" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="b1860d9c-0ac0-40d4-84cd-2fa44750b3e1" message="#[payload]"/>
+	</flow>
+</mule>
